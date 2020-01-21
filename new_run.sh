@@ -7,13 +7,14 @@
 # 4 - name of the submission script. Can be left blank, in which case 
 #     "submit.pbs" will be used
 
+code_dir="$(dirname "$(readlink -f "$0")")" 
 home_dir=$1
 run_dir=${2:-run}
 config=${3:-config.cfg}
 submit=${4:-submit.pbs}
 
 module load comp-intel/2018.3.222 python3/Intel_Python_3.6_2018.3.222
-python ~/Desktop/new_run.py $home_dir $run_dir $config $submit
+python $code_dir/new_run.py $home_dir $run_dir $config $submit
 module unload python3/Intel_Python_3.6_2018.3.222
 module load mpi-sgi/mpt
 cd $home_dir
