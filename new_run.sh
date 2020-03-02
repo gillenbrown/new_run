@@ -1,3 +1,6 @@
+set -e
+# causes the script to exit immediately if any errors are raised
+
 # arguments
 # 1 - home directory containing the defs.h file and argument 2
 # 2 - directory within #1 where the config and submit files are located. Can be
@@ -18,9 +21,7 @@ python $code_dir/new_run.py $home_dir $run_dir $config $submit
 module unload python3/Intel_Python_3.6_2018.3.222
 module load mpi-sgi/mpt
 cd $home_dir
-pwd
 make
 cp art $run_dir/
 cd $run_dir
-pwd
 qsub $submit
