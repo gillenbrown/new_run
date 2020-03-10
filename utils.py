@@ -39,8 +39,13 @@ def test_name(value):
     if os.sep in value:
         raise ValueError("Slashes are not allowed here.")
 
-def test_queue(value):
+def test_queue_pleiades(value):
     if value not in ["long", "normal", "devel", "debug"]:
+        raise ValueError("This is not an acceptable queue")
+
+def test_queue_stampede2(value):
+    if value not in ["development", "normal", "large", "long", "flat-quadrant", 
+                     "skx-dev", "skx-normal", "skx-large"]:
         raise ValueError("This is not an acceptable queue")
 
 def test_walltime(value):
@@ -70,7 +75,8 @@ test_dict = {"int": test_integer,
              "dir": test_dir,
              "epochs": test_epochs,
              "name": test_name,
-             "queue": test_queue,
+             "queue_pleiades": test_queue_pleiades,
+             "queue_stampede2": test_queue_stampede2,
              "walltime": test_walltime,
              "none": lambda: True}
 
@@ -91,7 +97,7 @@ class CheckLine(object):
 # Main function that edits a given line
 #
 # ==============================================================================
-def edit_line(original_line, separator, test_func):
+def edit_line(original_line, separator, test_func, answer=None):
     """
     Take a generic line and edit it
     """
@@ -103,8 +109,10 @@ def edit_line(original_line, separator, test_func):
         # by split. When we replace for this in the line the newline will not
         # be replaced
         old_value = original_line.split(separator)[-1].strip() 
-    # then get the new value
-    answer = input("{}: ".format(original_line.strip()))
+    # then get the new value. if answer is provided, we do not need to ask  
+    if answer is None:
+        answer = input("{}: ".format(original_line.strip()))
+    # then parse the answer as usual
     if len(answer) == 0:  # don't change anything
         # if we have a directory I want to check that it exists even if we 
         # aren't changing anything

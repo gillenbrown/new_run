@@ -105,7 +105,7 @@ def edit_line_mpiexec(original_line, n_nodes,
 # ==============================================================================
 submit_updates = [utils.CheckLine("#PBS -N", "name"),
                   utils.CheckLine("#PBS -l walltime", "walltime", "="),
-                  utils.CheckLine("#PBS -q", "queue")]
+                  utils.CheckLine("#PBS -q", "queue_pleiades")]
 
 # note that this is quite different from the other ones, since I have to check
 # for consistency of the number of nodes, cores, etc., so I don't use the 
