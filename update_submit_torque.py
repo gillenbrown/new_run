@@ -39,38 +39,6 @@ def edit_line_select(original_line, model, n_nodes, ranks_per_node, ncpus):
 
     return new_line
 
-def edit_line_walltime(original_line, test_func):
-    """
-    Edit the line in submit.pbs where the walltime is selected
-    """
-    # here we have to do a bit of checking on the walltime
-    old_walltime = original_line.split("=")[-1].strip()
-    # then get the new value
-    answer = input("{}: ".format(original_line.strip()))
-
-    # check that they added anything at all
-    if len(answer) == 0:
-        answer = old_walltime
-
-    # then we have to check it. First we'll check that is has an hours, minutes,
-    # seconds fields
-    time_segments = answer.split(":")
-    if len(time_segments) != 3:
-        raise ValueError("Not an appropriate walltime format")
-    # Then check that each are acceptable
-    for value in time_segments:
-        try:
-            int(value)
-        except ValueError:
-            raise ValueError("Time must be a string")
-
-    # check that seconds and minutes are correct
-    for value in time_segments[1:]:
-        if not 0 <= int(value) < 60:
-            raise ValueError("Time is not valid")
-
-    return original_line.replace(old_walltime, answer)
-
 def edit_line_mpiexec(original_line, n_nodes, 
                       ranks_per_node, n_cpus_per_task):
     """
@@ -130,17 +98,13 @@ def edit_line_mpiexec(original_line, n_nodes,
 
     return new_line
 
-# put one of those line editing functions into the dictionary that utils uses  
-# to actually do the editing. The others will be directly called below
-utils.edit_line_dict["#PBS -l walltime"] = edit_line_walltime
-
 # ==============================================================================
 #
 # The actual work is done here!!!
 #
 # ==============================================================================
 submit_updates = [utils.CheckLine("#PBS -N", "name"),
-                  utils.CheckLine("#PBS -l walltime", "none"),
+                  utils.CheckLine("#PBS -l walltime", "walltime", "="),
                   utils.CheckLine("#PBS -q", "queue")]
 
 # note that this is quite different from the other ones, since I have to check
@@ -218,7 +182,8 @@ with open(submit_filepath, "r") as in_file:
             if match is not None:
                 # A few of thiese have special formats that have to be 
                 # checked separately
-                new_line = match.edit_line_func(line, match.check_func)
+                new_line = match.edit_line_func(line, match.separator,
+                                                match.check_func)
             # here we need to check for the submit and mpiexec lines 
             # separately
             elif line.startswith("#PBS -l select"):

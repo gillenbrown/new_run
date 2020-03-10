@@ -9,9 +9,12 @@ config_file = sys.argv[3]
 config_filepath = run_dir + os.sep + config_file
 
 
-def edit_line_refinement(original_line, test_func):
+def edit_line_refinement(original_line, test_func, _):
     """
     Edit a line that involved refinement
+    
+    The extra parmater is required since we normally use it for the 
+    separator, but in this case we know what to look for so its not used
     """
     # note that here test_func is not used, but will be kept in the argument
     # list to retain consistency with the other functions
