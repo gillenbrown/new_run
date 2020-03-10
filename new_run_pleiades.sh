@@ -17,7 +17,11 @@ config=${3:-config.cfg}
 submit=${4:-submit.pbs}
 
 module load comp-intel/2018.3.222 python3/Intel_Python_3.6_2018.3.222
-python $code_dir/new_run.py $home_dir $run_dir $config $submit
+
+echo "\nEither enter the new value or just hit enter to leave it unchanged."
+python $code_dir/update_defs.py $home_dir $run_dir 
+python $code_dir/update_cfg.py $home_dir $run_dir $config 
+python $code_dir/update_submit_torque.py $home_dir $run_dir $submit $config
 module unload python3/Intel_Python_3.6_2018.3.222
 module load mpi-sgi/mpt
 cd $home_dir
