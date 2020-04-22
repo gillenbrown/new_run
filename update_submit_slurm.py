@@ -17,14 +17,19 @@ def edit_line_submission(original_line):
     The only changes are the config filename and the restart file, as the
     node/core info is handled by ibrun
     """
+    # first see if the user is using remora
+    if original_line.split()[0] == "remora":
+        remora = 1
+    else:
+        remora = 0
     # Make sure the config file specified is what the user wants
-    old_config = original_line.split()[3]
+    old_config = original_line.split()[2+remora]
     new_line = original_line.replace(old_config, config_file)
 
     # Then we can edit the place to start the sim
     # note that "-root" is used exclusively for initial conditions, while 
     # "-r" is used when resuming from another snapshot
-    old_restart = original_line.split()[4]
+    old_restart = original_line.split()[3+remora]
     answer = input("{}: ".format(old_restart))
     if len(answer) == 0:
         answer = old_restart
@@ -47,6 +52,10 @@ def edit_line_submission(original_line):
     new_line = new_line.replace(old_restart, answer)
 
     return new_line
+
+def edit_line_copy_config(original_line):
+    old_config = original_line.split()[1]
+    return original_line.replace(old_config, config_file)
 
 # ==============================================================================
 #
@@ -141,6 +150,8 @@ with open(submit_filepath, "r") as in_file:
             elif line.startswith("#SBATCH --cpus-per-task"):
                 new_line = utils.edit_line(line, "=", utils.test_integer,
                                            n_cpus_per_task)
+            elif line.startswith("cp") and ".cfg" in line:
+                new_line = edit_line_copy_config(line)
             elif "ibrun" in line and not line.startswith("#"):
                 new_line = edit_line_submission(line)
             else:  # not a line of interest, don't change it

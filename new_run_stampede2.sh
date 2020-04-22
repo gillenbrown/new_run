@@ -16,10 +16,12 @@ run_dir=${2:-run}
 config=${3:-config.cfg}
 submit=${4:-submit.sh}
 
-echo "\nEither enter the new value or just hit enter to leave it unchanged."
-python $code_dir/update_defs.py $home_dir $run_dir 
-python $code_dir/update_cfg.py $home_dir $run_dir $config 
-python $code_dir/update_submit_slurm.py $home_dir $run_dir $submit $config
+echo "Either enter the new value or just hit enter to leave it unchanged."
+module load python3
+python3 $code_dir/update_defs.py $home_dir $run_dir 
+python3 $code_dir/update_cfg.py $home_dir $run_dir $config
+python3 $code_dir/update_submit_slurm.py $home_dir $run_dir $submit $config
+module reset
 module load gsl
 cd $home_dir
 make
