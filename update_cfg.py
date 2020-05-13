@@ -60,11 +60,16 @@ utils.edit_line_dict["refinement"] = edit_line_refinement
 #
 # ==============================================================================
 config_updates = [utils.CheckLine("directory:outputs", "dir"),
-                  utils.CheckLine("directory:logs", "dir"),
+                #   utils.CheckLine("directory:logs", "dir"),
                   utils.CheckLine("snapshot-epochs", "epochs"),
-                  utils.CheckLine("refinement", "none"),
+                #   utils.CheckLine("refinement", "none"),
                   utils.CheckLine("auni-stop", "float"),
                   utils.CheckLine("max-dark-matter-level", "int"),
                   utils.CheckLine("sf:min-level", "int")]
+# We don't want to update the log directory because it should be automatically
+# generated in the submit script, as we want fresh log directories for each 
+# run.
+# Refinement isn't done either, as it does not change throughoug the history
+# of a given run
 
 utils.update_file(config_filepath, config_updates)
