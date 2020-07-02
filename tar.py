@@ -6,7 +6,7 @@ import shlex
 from tqdm import tqdm
 
 # set the maximum size of the tar file before compression is done. 
-max_size = 500E9  # 500 GB, in bytes
+max_size = 300E9  # 500 GB, in bytes
 
 # Directory where the output files will be located
 home_dir = Path("./").absolute()
