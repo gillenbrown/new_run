@@ -102,5 +102,5 @@ for name in tqdm(named_groups):
     # Use Stampede2 variables to point to Ranch
     command += '| ssh ${ARCHIVER} "cat > ${ARCHIVE}/' + f'{non_home_path}/{name}"'
     command = shlex.split(shlex.quote(command))
-    print(command)
-    # subprocess.run(command, shell=True)
+    # print(command)
+    subprocess.run(command, shell=True)
