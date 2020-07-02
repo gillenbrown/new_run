@@ -103,4 +103,4 @@ for name in tqdm(named_groups):
     command += '| ssh ${ARCHIVER} "cat > ${ARCHIVE}/' + f'{non_home_path}/{name}"'
     command = shlex.split(shlex.quote(command))
     print(command)
-    subprocess.run(command, shell=True)
+    # subprocess.run(command, shell=True)
