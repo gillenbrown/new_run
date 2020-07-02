@@ -112,6 +112,6 @@ for name in named_groups:
     command += '| ssh ${ARCHIVER} "cat > ${ARCHIVE}/' + f'{non_home_path}/{name}"'
     command = shlex.split(shlex.quote(command))
 
-    if get_yn_input(f"Do you want to transfer {name}?")
+    if get_yn_input(f"Do you want to transfer {name}?"):
         # print(command)
         subprocess.run(command, shell=True)
