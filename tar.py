@@ -11,8 +11,8 @@ max_size = 300E9  # 500 GB, in bytes
 # Directory where the output files will be located
 home_dir = Path("./").absolute()
 # # Directory on the remote machine where the files will be located
-# remote_machine = "ranch.tacc.utexas.edu"
-# remote_dir = "/u/home/gillenb/"
+remote_machine = "shangrila.astro.lsa.umich.edu"
+remote_dir = "/u/home/gillenb/"
 
 # first get a list of all the .art files, so I can make sure all files from a 
 # given output stay together.
@@ -62,6 +62,7 @@ for group in file_groups:
     named_groups[tar_name] = group
 
 # Inform the user of what will happen
+print(f"\nAll files will be copied to {remote_machine}:{remote_dir}")
 for key in sorted(named_groups.keys()):
     print(f"\n{key} will contain:")
     for file in named_groups[key]:
@@ -76,17 +77,17 @@ if answer == "n":
     exit()
 
 # Then we can make the tar files themselves.
-for name in tqdm(named_groups):
-    tar = tarfile.open(name=home_dir / name, mode="x")
-    for file in tqdm(named_groups[name]):
-        tar.add(file)
-    tar.close()
-
 # for name in tqdm(named_groups):
-#     command = "tar cf - "
-#     for file in named_groups[name]:
-#         command += file
-#         command += " "
-#     command += f'| ssh {remote_machine} "cat > {remote_dir}{name}"'
-#     command = shlex.split(shlex.quote(command))
-#     subprocess.run(command, shell=True)
+#     tar = tarfile.open(name=home_dir / name, mode="x")
+#     for file in tqdm(named_groups[name]):
+#         tar.add(file)
+#     tar.close()
+
+for name in tqdm(named_groups):
+    command = "tar cf - "
+    for file in named_groups[name]:
+        command += file
+        command += " "
+    command += f'| ssh {remote_machine} "cat > {remote_dir}{name}"'
+    command = shlex.split(shlex.quote(command))
+    subprocess.run(command, shell=True)
