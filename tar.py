@@ -1,5 +1,7 @@
 import tarfile
 from pathlib import Path
+import subprocess
+import shlex
 
 from tqdm import tqdm
 
@@ -8,6 +10,9 @@ max_size = 500E9  # 500 GB, in bytes
 
 # Directory where the output files will be located
 home_dir = Path("./").absolute()
+# # Directory on the remote machine where the files will be located
+# remote_machine = "ranch.tacc.utexas.edu"
+# remote_dir = "/u/home/gillenb/"
 
 # first get a list of all the .art files, so I can make sure all files from a 
 # given output stay together.
@@ -54,17 +59,11 @@ for group in file_groups:
     else:
         tar_name = f"outputs_{min_scale}_to_{max_scale}.tar"
 
-    tar_name = home_dir / tar_name
-    # see if this already exists: don't want to override if not needed
-    if tar_name.is_file():
-        raise RuntimeError(f"File {tar_name} wants to be created, but already exists!")
-
     named_groups[tar_name] = group
 
 # Inform the user of what will happen
-print(f"\nAll tar files will be written to:\n{home_dir}")
 for key in sorted(named_groups.keys()):
-    print(f"\n{key.name} will contain:")
+    print(f"\n{key} will contain:")
     for file in named_groups[key]:
         print(f"    - {file}")
 # Then ask them if they want to do this
@@ -78,7 +77,16 @@ if answer == "n":
 
 # Then we can make the tar files themselves.
 for name in tqdm(named_groups):
-    tar = tarfile.open(name=name, mode="x")
+    tar = tarfile.open(name=home_dir / name, mode="x")
     for file in tqdm(named_groups[name]):
         tar.add(file)
     tar.close()
+
+# for name in tqdm(named_groups):
+#     command = "tar cf - "
+#     for file in named_groups[name]:
+#         command += file
+#         command += " "
+#     command += f'| ssh {remote_machine} "cat > {remote_dir}{name}"'
+#     command = shlex.split(shlex.quote(command))
+#     subprocess.run(command, shell=True)
