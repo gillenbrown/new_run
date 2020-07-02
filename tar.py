@@ -14,6 +14,13 @@ import shlex
 
 from tqdm import tqdm
 
+def get_yn_input(prompt):
+    answer = input(prompt + " (y/n) ")
+    while answer.lower() not in ["y", "n"]:
+        answer = input("Enter y or n: ")
+
+    return answer == "y"
+
 # set the maximum size of the tar file before compression is done. 
 max_size = 300E9  # 500 GB, in bytes
 
@@ -38,10 +45,7 @@ art_file_stems = sorted(art_file_stems)
 # Ask them if they want to include the first output, it may already be in the tar file
 # from the previous operation, since it's needed to restart the next run
 print(f"The earliest output here is {art_file_stems[0]}.")
-include_first = input("Do you want to include it? (y/n)")
-while include_first.lower() not in ["y", "n"]:
-    include_first = input("Enter y or n: ")
-if include_first == "y":
+if not get_yn_input("Do you want to include it?"):
     art_file_stems = art_file_stems[1:]
 
 # then group them. We want tar files around the size of max_size above. What we
@@ -88,11 +92,7 @@ for key in sorted(named_groups.keys()):
     for file in named_groups[key]:
         print(f"    - {file}")
 # Then ask them if they want to do this
-answer = input("\nDo you want to execute this? (y/n) ")
-while answer.lower() not in ["y", "n"]:
-    answer = input("Enter y or n: ")
-
-if answer == "n":
+if not get_yn_input("\nDo you want to execute this?"):
     print("exiting...")
     exit()
 
@@ -111,6 +111,7 @@ for name in named_groups:
     # Use Stampede2 variables to point to Ranch
     command += '| ssh ${ARCHIVER} "cat > ${ARCHIVE}/' + f'{non_home_path}/{name}"'
     command = shlex.split(shlex.quote(command))
-    print(f"working on {name}...")
-    # print(command)
-    subprocess.run(command, shell=True)
+
+    if get_yn_input(f"Do you want to transfer {name}?")
+        # print(command)
+        subprocess.run(command, shell=True)
