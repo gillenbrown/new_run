@@ -1,3 +1,12 @@
+"""
+tar.py - Copies files to Ranch from Stampede2, in tars of ~300GB size
+
+This only works on Stampede2 right now, as it uses the $ARCHIVE environment variable.
+
+This should be run from the directory where the outputs are. It will copy them to
+the same path on Ranch, so this directory needs to exist. 
+"""
+
 import tarfile
 from pathlib import Path
 import subprocess
