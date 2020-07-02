@@ -9,15 +9,19 @@ from tqdm import tqdm
 max_size = 300E9  # 500 GB, in bytes
 
 # Directory where the output files will be located
-home_dir = Path("./").absolute()
-# # Directory on the remote machine where the files will be located
-remote_machine = "shangrila.astro.lsa.umich.edu"
-remote_dir = "/u/home/gillenb/"
+this_dir = Path("./").absolute()
+# Directory on the remote machine where the files will be located will be the same
+# as the directory here (other than the home directory, obviously)
+home_dir = Path.home()
+non_home_path = str(this_dir).replace(str(home_dir) + "/", "")
+# ^  home_dir has no slash at the end
+print(home_dir)
+print(non_home_path)
 
 # first get a list of all the .art files, so I can make sure all files from a 
 # given output stay together.
 art_file_stems = []
-for item in home_dir.iterdir():
+for item in this_dir.iterdir():
     if item.suffix == ".art":
         art_file_stems.append(item.stem)
 # sort them, so I can group similar outputs in the same tar file
@@ -36,7 +40,7 @@ for stem in art_file_stems:
         file_groups.append([])
 
     # add the outputs to the tar file.
-    for other_file in home_dir.iterdir():
+    for other_file in this_dir.iterdir():
         if other_file.stem == stem:
             accumulated_size += other_file.stat().st_size
             file_groups[-1].append(other_file.name)
@@ -62,7 +66,6 @@ for group in file_groups:
     named_groups[tar_name] = group
 
 # Inform the user of what will happen
-print(f"\nAll files will be copied to {remote_machine}:{remote_dir}")
 for key in sorted(named_groups.keys()):
     print(f"\n{key} will contain:")
     for file in named_groups[key]:
@@ -78,7 +81,7 @@ if answer == "n":
 
 # Then we can make the tar files themselves.
 # for name in tqdm(named_groups):
-#     tar = tarfile.open(name=home_dir / name, mode="x")
+#     tar = tarfile.open(name=this_dir / name, mode="x")
 #     for file in tqdm(named_groups[name]):
 #         tar.add(file)
 #     tar.close()
@@ -88,6 +91,8 @@ for name in tqdm(named_groups):
     for file in named_groups[name]:
         command += file
         command += " "
-    command += f'| ssh {remote_machine} "cat > {remote_dir}{name}"'
+    # Use Stampede2 variables to point to Ranch
+    command += '| ssh ${ARCHIVER} "cat > ${ARCHIVE}/' + f'{non_home_path}/{name}"'
     command = shlex.split(shlex.quote(command))
+    print(command)
     subprocess.run(command, shell=True)
