@@ -35,6 +35,15 @@ for item in this_dir.iterdir():
 # sort them, so I can group similar outputs in the same tar file
 art_file_stems = sorted(art_file_stems)
 
+# Ask them if they want to include the first output, it may already be in the tar file
+# from the previous operation, since it's needed to restart the next run
+print(f"The earliest output here is {art_file_stems[0]}.")
+include_first = input("Do you want to include it? (y/n)")
+while include_first.lower() not in ["y", "n"]:
+    include_first = input("Enter y or n: ")
+if include_first == "y":
+    art_file_stems = art_file_stems[1:]
+
 # then group them. We want tar files around the size of max_size above. What we
 # do is to go through the sorted outputs, adding them to a group one by one, 
 # keeping track of the size as we go. If it gets above 500GB, we make a new
