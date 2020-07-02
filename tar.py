@@ -20,12 +20,11 @@ max_size = 300E9  # 500 GB, in bytes
 # Directory where the output files will be located
 this_dir = Path("./").absolute()
 # Directory on the remote machine where the files will be located will be the same
-# as the directory here (other than the home directory, obviously)
-home_dir = Path.home()
-non_home_path = str(this_dir).replace(str(home_dir) + "/", "")
-# ^  home_dir has no slash at the end
-print(home_dir)
-print(non_home_path)
+# as the directory here (other than the home directory, obviously). Identifying the
+# home directory on stampede scratch is a bit tricky, since Path.home() goes to the
+# $HOME partition, not scratch
+stampede_username = "tg862118/"
+non_home_path = str(this_dir).partition(stampede_username)[-1]
 
 # first get a list of all the .art files, so I can make sure all files from a 
 # given output stay together.
@@ -72,7 +71,7 @@ for group in file_groups:
     else:
         tar_name = f"outputs_{min_scale}_to_{max_scale}.tar"
 
-    named_groups[tar_name] = group
+    named_groups[tar_name] = sorted(group)
 
 # Inform the user of what will happen
 for key in sorted(named_groups.keys()):
