@@ -25,6 +25,12 @@ module reset
 module load gsl
 cd $home_dir
 make
-cp art $run_dir/
-cd $run_dir
-sbatch $submit
+
+# Then copy the submission script to $SCRATCH. It will handle creating the
+# directories there as appropriate
+new_submit=submit_$(date +"%Y_%B_%d_%H.%M.%S").sh
+cp $run_dir/submit.sh $SCRATCH/$new_submit
+# Submit it from scratch, as this will reduce the file load on $WORK, as
+# requested by TACC
+cd $SCRATCH
+sbatch $new_submit
