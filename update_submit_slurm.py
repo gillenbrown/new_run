@@ -54,7 +54,8 @@ def edit_line_submission(original_line):
     return new_line
 
 def edit_line_copy_config(original_line):
-    old_config = original_line.split()[1]
+    # account for config files that have paths, as they do on stampede2
+    old_config = original_line.split()[1].split("/")[-1]
     return original_line.replace(old_config, config_file)
 
 # ==============================================================================
