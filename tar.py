@@ -109,7 +109,8 @@ for name in named_groups:
         command += file
         command += " "
     # Use Stampede2 variables to point to Ranch
-    command += '| ssh ${ARCHIVER} "cat > ${ARCHIVE}/' + f'{non_home_path}/{name}"'
+    command += '| ssh ${ARCHIVER} "cat > /stornext/ranch_01/ranch/projects/TG-AST200017/'
+    command += f'{non_home_path}/{name}"'
     command = shlex.split(shlex.quote(command))
 
     if get_yn_input(f"Do you want to transfer {name}?"):
