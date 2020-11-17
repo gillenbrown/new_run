@@ -90,7 +90,8 @@ for group in file_groups:
 for key in sorted(named_groups.keys()):
     print(f"\n{key} will contain:")
     for file in named_groups[key]:
-        print(f"    - {file}")
+        if file.endswith(".art"):
+            print(f"    - {file}")
 # Then ask them if they want to do this
 if not get_yn_input("\nDo you want to execute this?"):
     print("exiting...")
