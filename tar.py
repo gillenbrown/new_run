@@ -7,12 +7,13 @@ This should be run from the directory where the outputs are. It will copy them t
 the same path on Ranch, so this directory needs to exist. 
 """
 
-import tarfile
+import sys
 from pathlib import Path
-import subprocess
-import shlex
+import getpass
+import pexpect
 
-from tqdm import tqdm
+# Ask the user for their password, will be used later
+pwd = getpass.getpass(prompt="Enter Ranch password: ")
 
 def get_yn_input(prompt):
     answer = input(prompt + " (y/n) ")
@@ -21,8 +22,8 @@ def get_yn_input(prompt):
 
     return answer == "y"
 
-# set the maximum size of the tar file before compression is done. 
-max_size = 300E9  # 500 GB, in bytes
+# set the maximum size of the tar file before compression is done.
+max_size = 300E9  # 300 GB, in bytes
 
 # Directory where the output files will be located
 this_dir = Path("./").absolute()
@@ -33,7 +34,7 @@ this_dir = Path("./").absolute()
 stampede_username = "tg862118/"
 non_home_path = str(this_dir).partition(stampede_username)[-1]
 
-# first get a list of all the .art files, so I can make sure all files from a 
+# first get a list of all the .art files, so I can make sure all files from a
 # given output stay together.
 art_file_stems = []
 for item in this_dir.iterdir():
@@ -49,7 +50,7 @@ if not get_yn_input("Do you want to include it?"):
     art_file_stems = art_file_stems[1:]
 
 # then group them. We want tar files around the size of max_size above. What we
-# do is to go through the sorted outputs, adding them to a group one by one, 
+# do is to go through the sorted outputs, adding them to a group one by one,
 # keeping track of the size as we go. If it gets above 500GB, we make a new
 # group. Each of these individual groups will be turned into a tar file later.
 accumulated_size = 0
@@ -66,7 +67,7 @@ for stem in art_file_stems:
             accumulated_size += other_file.stat().st_size
             file_groups[-1].append(other_file.name)
 
-# Make the filenames of the tar files. I'll name the tar file based on the 
+# Make the filenames of the tar files. I'll name the tar file based on the
 # outputs that it contains.
 def file_to_scale(file_name):
     suffix = file_name.split(".")[-1]
@@ -112,8 +113,15 @@ for name in named_groups:
     # Use Stampede2 variables to point to Ranch
     command += '| ssh ${ARCHIVER} "cat > /stornext/ranch_01/ranch/projects/TG-AST200017/'
     command += f'{non_home_path}/{name}"'
-    command = shlex.split(shlex.quote(command))
+    # spawn the child process, and use the encoding argument to allow me to send the
+    # log to stdout. Set no timeout since the copying takes a while.
+    child = pexpect.spawn("/bin/bash", ["-c", command], encoding="utf-8", timeout=None)
+    # set the output to stdout (but not the input, since that has my password)
+    child.logfile_read = sys.stdout
+    # then enter the password
+    child.expect("Password: ")
+    child.sendline(pwd)
+    # then wait for it to complete.
+    child.expect(pexpect.EOF)
 
-    if get_yn_input(f"Do you want to transfer {name}?"):
-        # print(command)
-        subprocess.run(command, shell=True)
+print("Done!")
