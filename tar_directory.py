@@ -27,7 +27,9 @@ else:
     # $HOME partition, not scratch
     stampede_username = "tg862118/"
     this_dir = str(Path("./").absolute())
-    dir_ranch_end = str(this_dir).partition(stampede_username)[-1]
+    # on WORK there is an extra stampede2 term that I should remove
+    this_dir = this_dir.replace("stampede2/", "")
+    dir_ranch_end = this_dir.partition(stampede_username)[-1]
 dir_ranch = "/stornext/ranch_01/ranch/projects/TG-AST200017/" + dir_ranch_end
 
 # also make the filename
