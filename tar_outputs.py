@@ -1,5 +1,5 @@
 """
-tar.py - Copies files to Ranch from Stampede2, in tars of ~300GB size
+tar_outputs.py - Copies files to Ranch from Stampede2, in tars of ~300GB size
 
 This only works on Stampede2 right now, as it uses the $ARCHIVE environment variable.
 
