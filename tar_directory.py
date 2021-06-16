@@ -7,8 +7,12 @@ This takes the following arguments:
 - Location of the directory to copy
 - (optional) Directory to copy this to on Ranch. If not included, the path will be
   the same as the current path, just modified for the different machine.
+- (optional) Whether or not to include the date in the directory name. To not include
+  the date, pass 'no-date'.
+Note that these last two parameters can be in any order.
 """
 
+import datetime
 import sys
 from pathlib import Path
 import getpass
@@ -17,9 +21,26 @@ import pexpect
 # store the names of the direcory to copy and where to put it
 dir_to_copy = sys.argv[1]
 # If the user provides a path on Ranch, use that
+dir_ranch_end = None
+add_date = True
 if len(sys.argv) > 2:
-    dir_ranch_end = sys.argv[2]
-else:
+    second_param = sys.argv[2]
+    # if it's a p
+    if len(sys.argv) == 4:
+        third_param = sys.argv[3]
+    else:
+        third_param = None
+
+    # then figure out which is which
+    if second_param in ["date", "no-date"]:
+        # require it to say no-date if we don't want the date added.
+        add_date = not (second_param == "no-date")
+        dir_ranch_end = third_param
+    else:
+        dir_ranch_end = second_param
+        add_date = not (third_param == "no-date")
+
+if dir_ranch_end is None:
     # Otherwise, use the directory we're at now.
     # Directory on the remote machine where the files will be located will be the same
     # as the directory here (other than the home directory, obviously). Identifying the
@@ -33,7 +54,11 @@ else:
 dir_ranch = "/stornext/ranch_01/ranch/projects/TG-AST200017/" + dir_ranch_end
 
 # also make the filename
-file_name = f"{Path(dir_to_copy).name}.tar"
+if add_date:
+    date = datetime.date.today().strftime("%Y_%m_%d")
+    file_name = f"{Path(dir_to_copy).name}_{date}.tar"
+else:
+    file_name = f"{Path(dir_to_copy).name}.tar"
 path_ranch = str(Path(dir_ranch) / file_name)
 
 # Ask the user for their password, will be used later
