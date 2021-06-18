@@ -17,28 +17,33 @@ import sys
 from pathlib import Path
 import getpass
 import pexpect
+import shutil
 
+# as we parse the arguments we'll remove them, so remove the script name
+sys.argv.pop(0)
 # store the names of the direcory to copy and where to put it
-dir_to_copy = sys.argv[1]
-# If the user provides a path on Ranch, use that
-dir_ranch_end = None
+dir_to_copy = Path(sys.argv[0]).resolve()
+sys.argv.pop(0)
+# if not specified, do add the date
 add_date = True
-if len(sys.argv) > 2:
-    second_param = sys.argv[2]
-    # if it's a p
-    if len(sys.argv) == 4:
-        third_param = sys.argv[3]
-    else:
-        third_param = None
+if "no-date" in sys.argv:
+    add_date = False
+    sys.argv.remove("no-date")
 
-    # then figure out which is which
-    if second_param in ["date", "no-date"]:
-        # require it to say no-date if we don't want the date added.
-        add_date = not (second_param == "no-date")
-        dir_ranch_end = third_param
-    else:
-        dir_ranch_end = second_param
-        add_date = not (third_param == "no-date")
+# if not specified, do not delete
+delete = False
+if "delete" in sys.argv:
+    delete = True
+    sys.argv.remove("delete")
+
+# there should only be one item left
+if len(sys.argv) > 1:
+    raise ValueError("Too many parameters!")
+
+# anything else is the directory
+dir_ranch_end = None
+if len(sys.argv) == 1:
+    dir_ranch_end = sys.argv[0]
 
 if dir_ranch_end is None:
     # Otherwise, use the directory we're at now.
@@ -56,9 +61,9 @@ dir_ranch = "/stornext/ranch_01/ranch/projects/TG-AST200017/" + dir_ranch_end
 # also make the filename
 if add_date:
     date = datetime.date.today().strftime("%Y_%m_%d")
-    file_name = f"{Path(dir_to_copy).name}_{date}.tar"
+    file_name = f"{dir_to_copy.name}_{date}.tar"
 else:
-    file_name = f"{Path(dir_to_copy).name}.tar"
+    file_name = f"{dir_to_copy.name}.tar"
 path_ranch = str(Path(dir_ranch) / file_name)
 
 # Ask the user for their password, will be used later
@@ -73,12 +78,14 @@ def get_yn_input(prompt):
 
 # Inform the user of what will happen
 print(f"\n{dir_to_copy}\nwill be transferred to:\n{path_ranch}")
+if delete:
+    print("========== THEN WILL BE DELETED! ==========")
 # Then ask them if they want to do this
 if not get_yn_input("\nDo you want to execute this?"):
     print("exiting...")
     exit()
 
-command = f"tar cf - {dir_to_copy} "
+command = f"tar cf - {str(dir_to_copy)} "
 # Use Stampede2 variables to point to Ranch
 command += "| ssh ${ARCHIVER} "
 command += f'"cat > {path_ranch}"'
@@ -92,5 +99,17 @@ child.expect("Password: ")
 child.sendline(pwd)
 # then wait for it to complete.
 child.expect(pexpect.EOF)
+
+def delete_folder(dir_to_delete):
+    for item in dir_to_delete.iterdir():
+        if item.is_dir():
+            delete_folder(item)
+        else:
+            print("deleting", item)
+            item.unlink()
+    dir_to_delete.rmdir()
+
+if delete:
+    delete_folder(dir_to_copy)
 
 print("Done!")
