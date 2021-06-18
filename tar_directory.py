@@ -22,7 +22,8 @@ import shutil
 # as we parse the arguments we'll remove them, so remove the script name
 sys.argv.pop(0)
 # store the names of the direcory to copy and where to put it
-dir_to_copy = Path(sys.argv[0]).resolve()
+dir_to_copy_raw = sys.argv[0]
+dir_to_copy = Path(dir_to_copy_raw).resolve()
 sys.argv.pop(0)
 # if not specified, do add the date
 add_date = True
@@ -66,9 +67,6 @@ else:
     file_name = f"{dir_to_copy.name}.tar"
 path_ranch = str(Path(dir_ranch) / file_name)
 
-# Ask the user for their password, will be used later
-pwd = getpass.getpass(prompt="Enter Ranch password: ")
-
 def get_yn_input(prompt):
     answer = input(prompt + " (y/n) ")
     while answer.lower() not in ["y", "n"]:
@@ -85,7 +83,11 @@ if not get_yn_input("\nDo you want to execute this?"):
     print("exiting...")
     exit()
 
-command = f"tar cf - {str(dir_to_copy)} "
+# Ask the user for their password, will be used later
+pwd = getpass.getpass(prompt="Enter Ranch password: ")
+
+# then copy the files
+command = f"tar cf - {dir_to_copy_raw} "
 # Use Stampede2 variables to point to Ranch
 command += "| ssh ${ARCHIVER} "
 command += f'"cat > {path_ranch}"'
@@ -99,17 +101,17 @@ child.expect("Password: ")
 child.sendline(pwd)
 # then wait for it to complete.
 child.expect(pexpect.EOF)
+print("Done copying!")
 
 def delete_folder(dir_to_delete):
     for item in dir_to_delete.iterdir():
-        if item.is_dir():
+        # Have to avoid traversing symlinks and deleting their contents!
+        if item.is_dir() and not item.is_symlink():
             delete_folder(item)
         else:
-            print("deleting", item)
             item.unlink()
     dir_to_delete.rmdir()
 
 if delete:
     delete_folder(dir_to_copy)
-
-print("Done!")
+    print("Done deleting!")
