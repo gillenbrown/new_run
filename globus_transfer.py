@@ -2,10 +2,8 @@
 globus_transfer.py
 
 Copies one file using Globus. Takes the following command line arguments:
-- name of the source endpoint. Must match one of my bookmarks! This is assumed to be
-  the current machine.
-- name of the destination endpoint. Must match one of my bookmarks!
 - path to the source to copy. This is relative to the current path.
+- name of the destination endpoint. Must match one of my bookmarks!
 - path to copy the item to. This is relative to the path defined in the bookmark.
 - (optional) label for the transfer
 """
@@ -14,19 +12,35 @@ from pathlib import Path
 import subprocess
 
 # validate user options
-if len(sys.argv) < 5:
-    raise ValueError("Need 4 command line options!")
-if len(sys.argv) > 6:
+if len(sys.argv) < 4:
+    raise ValueError("Need 3 command line options!")
+if len(sys.argv) > 5:
     raise ValueError("Too many command line options!")
 # get user options
-source_name = sys.argv[1]
+source_end_path = sys.argv[1]
 destination_name = sys.argv[2]
-source_end_path = sys.argv[3]
-destination_end_path = sys.argv[4]
-if len(sys.argv) == 6:
-    label = sys.argv[5]
+destination_end_path = sys.argv[3]
+if len(sys.argv) == 5:
+    label = sys.argv[4]
 else:
     label = None
+
+# ======================================================================================
+#
+# Get the current directory to know what our source is
+#
+# ======================================================================================
+working_dir = Path(".").resolve()
+if str(working_dir).startswith("/scratch/06912/tg862118"):
+    source_name = "stampede2_scratch"
+elif str(working_dir).startswith("/work2/06912/tg862118/stampede2"):
+    source_name = "stampede2_work2"
+elif str(working_dir).startswith("/work/06912/tg862118/stampede2"):
+    source_name = "stampede2_work"
+elif str(working_dir).startswith("/home1/06912/tg862118"):
+    source_name = "stampede2_home"
+else:
+    raise ValueError("I don't know how to transfer from here!")
 
 # ======================================================================================
 #
@@ -69,31 +83,15 @@ for b in bookmarks:
         destination = b
 
 if source is None:
-    raise ValueError("Source bookmark not found!")
+    raise ValueError(f"Source bookmark {source_name} not found!")
 if destination is None:
-    raise ValueError("Destination bookmark not found!")
+    raise ValueError(f"Destination bookmark {destination_name} not found!")
 
 # ======================================================================================
 #
 # handle paths fully
 #
 # ======================================================================================
-# first check that the user is on the machine they say they are
-working_dir = Path(".").resolve()
-# the source path can be the home directory, so we need to parse that to compare fairly
-if source.path == "/~/":
-    source.path = str(Path().home().resolve())
-# strip ending /, it can mess with comparison below
-if source.path.endswith("/"):
-    source.path = source.path[:-1]
-# then do the comparison
-if not str(working_dir).startswith(source.path):
-    print(working_dir, source.path)
-    raise RuntimeError(
-        "It doesn't like you're on the source machine!\n"
-        f"You said you're on {source.name}."
-    )
-
 # Now we can extend the paths. The source dir will be the working directory plus the
 # path the user said
 source_file_path = working_dir / source_end_path
