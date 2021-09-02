@@ -1,6 +1,7 @@
 import sys
 import os
 import utils
+import socket
 
 home_dir = os.path.abspath(sys.argv[1])
 defs_file = home_dir + os.sep + "defs.h"
@@ -114,7 +115,11 @@ except ValueError:
 if "skx" in answer_partition:
     ncpus = "48"
 else:
-    ncpus = "68"
+    hostname = socket.gethostname()
+    if "frontera" in hostname:
+        ncpus = "56"
+    elif "stampede2" in hostname:
+        ncpus = "68"
 
 # Then check whether the use picked an appropriate number of mpi tasks
 # per node. It must evenly divide the number of cpus on the node
