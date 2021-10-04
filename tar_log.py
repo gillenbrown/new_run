@@ -29,7 +29,10 @@ if not log_dir.is_dir():
 path_ranch = "art_runs/runs/production/"
 # use the name of the run to put this in the right directory
 name_split = log_dir.name.split("_")
-dir_name = "_".join(name_split[2:5])  # save this for use later
+if "fboost" in log_dir.name:
+    dir_name = "_".join(name_split[2:6])
+else:
+    dir_name = "_".join(name_split[2:5])
 path_ranch += dir_name
 # then go to the log directory
 path_ranch += "/run/log/"
