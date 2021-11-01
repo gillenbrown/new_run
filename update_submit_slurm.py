@@ -114,9 +114,9 @@ if len(answer_ranks_per_node) == 0:
 try:
     utils.test_integer(answer_ranks_per_node)
     if "frontera" in hostname:
-        utils.test_queue_stampede2(answer_partition)
-    elif "stampede2" in hostname:
         utils.test_queue_frontera(answer_partition)
+    elif "stampede2" in hostname:
+        utils.test_queue_stampede2(answer_partition)
 
 except ValueError:
     raise ValueError("These answers are not valid.")
