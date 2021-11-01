@@ -114,9 +114,12 @@ if len(answer_ranks_per_node) == 0:
 try:
     utils.test_integer(answer_ranks_per_node)
     if "frontera" in hostname:
-        utils.test_queue_frontera(answer_partition)
+        test_queue = utils.test_queue_frontera
     elif "stampede2" in hostname:
-        utils.test_queue_stampede2(answer_partition)
+        test_queue = utils.test_queue_stampede2
+    else:
+        raise ValueError("Machine not recognized")
+    test_queue(answer_partition)
 
 except ValueError:
     raise ValueError("These answers are not valid.")
@@ -158,9 +161,7 @@ with open(submit_filepath, "r") as in_file:
             # there are also a few things we know we need to change
             # There are a few lines where we know the answer already
             elif line.startswith("#SBATCH --partition"):
-                new_line = utils.edit_line(
-                    line, "=", utils.test_queue_stampede2, answer_partition
-                )
+                new_line = utils.edit_line(line, "=", test_queue, answer_partition)
             elif line.startswith("#SBATCH --ntasks-per-node"):
                 new_line = utils.edit_line(
                     line, "=", utils.test_integer, answer_ranks_per_node
