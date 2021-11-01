@@ -16,11 +16,13 @@ def test_integer(value):
     except ValueError:
         raise ValueError("This must be an integer")
 
+
 def test_float(value):
     try:
         float(value)
     except ValueError:
         raise ValueError("This must be a float")
+
 
 def test_dir(value):
     # This will create the directory if it doesn't exist
@@ -28,25 +30,49 @@ def test_dir(value):
         os.makedirs(value)  # creates full path
         print("creating {}".format(value))
 
+
 def test_epochs(value):
-    #\d is the decimal numbers 0-9
+    # \d is the decimal numbers 0-9
     pattern = re.compile("^\(0\.\d*,[01]\.\d*,0\.\d*\)\Z")
     if not pattern.match(value):
         raise ValueError("this does not match the format for epochs")
+
 
 def test_name(value):
     # here we don't allow any separators
     if os.sep in value:
         raise ValueError("Slashes are not allowed here.")
 
+
 def test_queue_pleiades(value):
     if value not in ["long", "normal", "devel", "debug"]:
         raise ValueError("This is not an acceptable queue")
 
+
 def test_queue_stampede2(value):
-    if value not in ["development", "normal", "large", "long", "flat-quadrant", 
-                     "skx-dev", "skx-normal", "skx-large"]:
+    if value not in [
+        "development",
+        "normal",
+        "large",
+        "long",
+        "flat-quadrant",
+        "skx-dev",
+        "skx-normal",
+        "skx-large",
+    ]:
         raise ValueError("This is not an acceptable queue")
+
+
+def test_queue_frontera(value):
+    if value not in [
+        "development",
+        "normal",
+        "large",
+        "long",
+        "small",
+    ]:
+        raise ValueError("This is not an acceptable queue")
+
 
 def test_walltime(value):
     # First we'll check that is has an hours, minutes, seconds fields
@@ -65,20 +91,23 @@ def test_walltime(value):
         if not 0 <= int(segment) < 60:
             raise ValueError("Time is not valid")
 
+
 # def test_refinement(value):
 #     pattern = re.compile("^id=\d{1,2} weight=\d from-level=\d{1,2} to-level=\d{1,2} \d\.\d*\Z")
 #     if not pattern.match(value):
 #         raise ValueError("this does not match the format for refinement")
 
-test_dict = {"int": test_integer,
-             "float": test_float,
-             "dir": test_dir,
-             "epochs": test_epochs,
-             "name": test_name,
-             "queue_pleiades": test_queue_pleiades,
-             "queue_stampede2": test_queue_stampede2,
-             "walltime": test_walltime,
-             "none": lambda: True}
+test_dict = {
+    "int": test_integer,
+    "float": test_float,
+    "dir": test_dir,
+    "epochs": test_epochs,
+    "name": test_name,
+    "queue_pleiades": test_queue_pleiades,
+    "queue_stampede2": test_queue_stampede2,
+    "walltime": test_walltime,
+    "none": lambda: True,
+}
 
 # ==============================================================================
 #
@@ -91,6 +120,7 @@ class CheckLine(object):
         self.check_func = test_dict[dtype]
         self.edit_line_func = edit_line_dict[name]
         self.separator = separator
+
 
 # ==============================================================================
 #
@@ -108,13 +138,13 @@ def edit_line(original_line, separator, test_func, answer=None):
         # here we remove the newline with strip, since it doesn't get removed
         # by split. When we replace for this in the line the newline will not
         # be replaced
-        old_value = original_line.split(separator)[-1].strip() 
-    # then get the new value. if answer is provided, we do not need to ask  
+        old_value = original_line.split(separator)[-1].strip()
+    # then get the new value. if answer is provided, we do not need to ask
     if answer is None:
         answer = input("{}: ".format(original_line.strip()))
     # then parse the answer as usual
     if len(answer) == 0:  # don't change anything
-        # if we have a directory I want to check that it exists even if we 
+        # if we have a directory I want to check that it exists even if we
         # aren't changing anything
         if test_func == test_dir:
             test_func(old_value)
@@ -153,7 +183,7 @@ def replace_files(old_file, new_file):
 #
 # ==============================================================================
 def update_file(old_file, lines_to_update):
-    print("\n" + "="*79)
+    print("\n" + "=" * 79)
     print("Checking {}\n".format(os.path.basename(old_file)))
 
     new_file = old_file + ".temp"
@@ -167,10 +197,11 @@ def update_file(old_file, lines_to_update):
                         match = start
 
                 if match is not None:
-                    # A few of these have special formats that have to be 
+                    # A few of these have special formats that have to be
                     # checked separately
-                    new_line = match.edit_line_func(line, match.separator, 
-                                                    match.check_func)
+                    new_line = match.edit_line_func(
+                        line, match.separator, match.check_func
+                    )
                     out_file.write(new_line)
                 else:  # not a line of interest, don't change it
                     out_file.write(line)

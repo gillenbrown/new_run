@@ -10,6 +10,8 @@ submit_file = sys.argv[3]
 config_file = sys.argv[4]
 submit_filepath = run_dir + os.sep + submit_file
 
+hostname = socket.gethostname()
+
 
 def edit_line_submission(original_line):
     """
@@ -24,13 +26,13 @@ def edit_line_submission(original_line):
     else:
         remora = 0
     # Make sure the config file specified is what the user wants
-    old_config = original_line.split()[2+remora]
+    old_config = original_line.split()[2 + remora]
     new_line = original_line.replace(old_config, config_file)
 
     # Then we can edit the place to start the sim
-    # note that "-root" is used exclusively for initial conditions, while 
+    # note that "-root" is used exclusively for initial conditions, while
     # "-r" is used when resuming from another snapshot
-    old_restart = original_line.split()[3+remora]
+    old_restart = original_line.split()[3 + remora]
     answer = input("{}: ".format(old_restart))
     if len(answer) == 0:
         answer = old_restart
@@ -54,23 +56,27 @@ def edit_line_submission(original_line):
 
     return new_line
 
+
 def edit_line_copy_config(original_line):
     # account for config files that have paths, as they do on stampede2
     old_config = original_line.split()[1].split("/")[-1]
     return original_line.replace(old_config, config_file)
+
 
 # ==============================================================================
 #
 # The actual work is done here!!!
 #
 # ==============================================================================
-submit_updates = [utils.CheckLine("#SBATCH --job-name", "name", "="),
-                  utils.CheckLine("#SBATCH --time", "walltime", "="),
-                  utils.CheckLine("#SBATCH --nodes", "int", "="),
-                  utils.CheckLine("export REMORA_PERIOD", "int", "=")]
+submit_updates = [
+    utils.CheckLine("#SBATCH --job-name", "name", "="),
+    utils.CheckLine("#SBATCH --time", "walltime", "="),
+    utils.CheckLine("#SBATCH --nodes", "int", "="),
+    utils.CheckLine("export REMORA_PERIOD", "int", "="),
+]
 # In addition I check the combination of tasks_per_node, queue (for the
 # processor type), and cpus_per_task
-print("\n" + "="*79)
+print("\n" + "=" * 79)
 print("Checking {}\n".format(os.path.basename(submit_filepath)))
 
 new_file = submit_filepath + ".temp"
@@ -82,7 +88,7 @@ with open(submit_filepath, "r") as in_file:
     for line in in_file:
         if line.startswith("#SBATCH --"):
             data = line.split("--")[-1]
-            #all these options have an "=" in their specification
+            # all these options have an "=" in their specification
             if "=" in data:
                 key, old_value = data.split("=")
                 old_value = old_value.strip()  # get rid of newline
@@ -106,8 +112,12 @@ if len(answer_ranks_per_node) == 0:
 
 # then validate these answers for type
 try:
-    utils.test_queue_stampede2(answer_partition)
     utils.test_integer(answer_ranks_per_node)
+    if "frontera" in hostname:
+        utils.test_queue_stampede2(answer_partition)
+    elif "stampede2" in hostname:
+        utils.test_queue_frontera(answer_partition)
+
 except ValueError:
     raise ValueError("These answers are not valid.")
 
@@ -115,7 +125,6 @@ except ValueError:
 if "skx" in answer_partition:
     ncpus = "48"
 else:
-    hostname = socket.gethostname()
     if "frontera" in hostname:
         ncpus = "56"
     elif "stampede2" in hostname:
@@ -125,12 +134,14 @@ else:
 # per node. It must evenly divide the number of cpus on the node
 n_cpus_per_task = float(ncpus) / float(answer_ranks_per_node)
 if int(n_cpus_per_task) != n_cpus_per_task:
-    raise ValueError("Running {} MPI ranks per mode results in an "
-                        "uneven number of cores per rank. Choose again."
-                        "".format(answer_ranks_per_node))
+    raise ValueError(
+        "Running {} MPI ranks per mode results in an "
+        "uneven number of cores per rank. Choose again."
+        "".format(answer_ranks_per_node)
+    )
 n_cpus_per_task = str(int(n_cpus_per_task))
 
-# Then we can go through and change things. We'll change things that we 
+# Then we can go through and change things. We'll change things that we
 # need as we go, whether that's with the submit line or ones in the original
 # list passed in here
 with open(submit_filepath, "r") as in_file:
@@ -143,19 +154,21 @@ with open(submit_filepath, "r") as in_file:
                     match = start
 
             if match is not None:
-                new_line = match.edit_line_func(line, match.separator, 
-                                     match.check_func)
+                new_line = match.edit_line_func(line, match.separator, match.check_func)
             # there are also a few things we know we need to change
             # There are a few lines where we know the answer already
             elif line.startswith("#SBATCH --partition"):
-                new_line = utils.edit_line(line, "=", utils.test_queue_stampede2,
-                                           answer_partition)
+                new_line = utils.edit_line(
+                    line, "=", utils.test_queue_stampede2, answer_partition
+                )
             elif line.startswith("#SBATCH --ntasks-per-node"):
-                new_line = utils.edit_line(line, "=", utils.test_integer,
-                                           answer_ranks_per_node)
+                new_line = utils.edit_line(
+                    line, "=", utils.test_integer, answer_ranks_per_node
+                )
             elif line.startswith("#SBATCH --cpus-per-task"):
-                new_line = utils.edit_line(line, "=", utils.test_integer,
-                                           n_cpus_per_task)
+                new_line = utils.edit_line(
+                    line, "=", utils.test_integer, n_cpus_per_task
+                )
             elif line.startswith("cp") and ".cfg" in line:
                 new_line = edit_line_copy_config(line)
             elif "ibrun" in line and not line.startswith("#"):
