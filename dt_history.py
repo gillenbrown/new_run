@@ -7,7 +7,6 @@ plot to my computer for convenience.
 This does this on all directories in the current working directory that start with
 `runtime`. It does ask the user if they want to do this.
 """
-import sys, os
 import subprocess
 from pathlib import Path
 
