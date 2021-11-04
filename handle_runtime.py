@@ -46,7 +46,7 @@ def get_yn_input(prompt):
 # Go through and do the work
 #
 # ==============================================================================
-for r_d in runtime_dirs:
+for r_d in sorted(runtime_dirs):
     if not get_yn_input(f"Handle {r_d.name}?"):
         continue
 
