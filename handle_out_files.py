@@ -1,9 +1,8 @@
 """
-handle_halos.py
+handle_out_files.py
 
-Moves halo files from the runtime scratch directory to the analysis scratch directory,
-but copies that last set of halo files back to the runtime directory to allow the next
-run of halo finding to work properly.
+Move out files from the working_out directory to the out directory, but keeping the
+last output in working_out
 
 Must be run from the folder containing all the runs, and only works for the
 production runs.
@@ -19,8 +18,7 @@ if "production" != current_dir.name:
     raise RuntimeError("Only works for production runs")
 if current_dir.parts[1] != "scratch":
     raise RuntimeError("Not on scratch")
-scratch = current_dir.parents[2]
-analysis_dir = scratch / "art_runs" / "analysis" / "production"
+
 
 # ======================================================================================
 #
@@ -31,10 +29,8 @@ def get_scale_factor(filename):
     """
     rtype: str
     """
-    if filename.startswith("halos_"):
-        return filename[7:13]
-    elif filename.startswith("out_"):
-        return filename[5:11]
+    if filename.startswith("continuous_a"):
+        return filename[12:18]
     else:
         return None
 
@@ -45,14 +41,17 @@ def get_scale_factor(filename):
 #
 # ======================================================================================
 for run_dir in current_dir.iterdir():
-    run_name = run_dir.name
-    halos_dir = run_dir / "run" / "halos"
-    analysis_halos_dir = analysis_dir / run_name / "run" / "halos"
+    out_dir = run_dir / "run" / "out"
+    working_out_dir = run_dir / "run" / "working_out"
 
-    # Find all files
+    # check that the out directory is empty
+    if len([f for f in out_dir.iterdir()]) > 0:
+        raise RuntimeError(f"Out directory for {run_dir.name} is not empty")
+
+    # Find all output files
     groups = defaultdict(list)
     last_scale = 0
-    for file in halos_dir.iterdir():
+    for file in working_out_dir.iterdir():
         scale = get_scale_factor(file.name)
         if scale is not None:
             groups[scale].append(file)
@@ -60,10 +59,12 @@ for run_dir in current_dir.iterdir():
             if float(scale) > float(last_scale):
                 last_scale = scale
 
+    print(f"Last output for {run_dir.name} at a = {last_scale}")
+
     # Move files to the analysis directory
     for scale, files in groups.items():
         for f in files:
-            new_file_loc = analysis_halos_dir / f.name
+            new_file_loc = out_dir / f.name
             # If it's the last scale factor, just copy it so that we keep the original
             # intact here
             if scale == last_scale:
