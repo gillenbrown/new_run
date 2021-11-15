@@ -40,7 +40,7 @@ def get_scale_factor(filename):
 # Then actually do this
 #
 # ======================================================================================
-for run_dir in current_dir.iterdir():
+for run_dir in sorted(current_dir.iterdir()):
     out_dir = run_dir / "run" / "out"
     working_out_dir = run_dir / "run" / "working_out"
 
@@ -61,7 +61,10 @@ for run_dir in current_dir.iterdir():
 
     print(f"Last output for {run_dir.name} at a = {last_scale}")
 
-    # Move files to the analysis directory
+    # Move files to the analysis directory. But if there's only one, that means that
+    # the simulation didn't progress at all. So we don't need to move anything.
+    if len(groups) == 1:
+        continue
     for scale, files in groups.items():
         for f in files:
             new_file_loc = out_dir / f.name
