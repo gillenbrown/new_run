@@ -33,26 +33,19 @@ def edit_line_submission(original_line):
     # note that "-root" is used exclusively for initial conditions, while
     # "-r" is used when resuming from another snapshot
     old_restart = original_line.split()[3 + remora]
-    answer = input("{}: ".format(old_restart))
+    answer = input("{} ->  -r=".format(old_restart))
     if len(answer) == 0:
-        answer = old_restart
-    # then do some error checking
-    if answer.startswith("-r="):
-        prefix, scale_factor = answer.split("=")
+        new_restart = old_restart
+    else:
+        # the answer is the scale factor of the restart
         try:
-            assert 0.0 <= float(scale_factor) <= 1.0
+            assert 0.0 <= float(answer) <= 1.0
         except (ValueError, AssertionError):
             raise ValueError("Bad restart option.")
-    elif answer.startswith("-root="):
-        prefix, location = answer.split("=")
-        # here the location is a directory with "music" appended to it. this
-        # checking is more work than I want to do, so I won't do it. The line
-        # above will do a bit of checking, in that it will make sure two things
-        # exist here
-    else:
-        raise ValueError("Bad restart option.")
+        new_restart = f"-r={answer}"
+
     # if we got here the answer is fine
-    new_line = new_line.replace(old_restart, answer)
+    new_line = new_line.replace(old_restart, new_restart)
 
     return new_line
 
