@@ -77,9 +77,8 @@ def test_queue_frontera(value):
 def test_queue_anvil(value):
     if value not in [
         "debug",
-        "normal",
+        "standard",
         "wide",
-        "shared",
         "highmem",
     ]:
         raise ValueError("This is not an acceptable queue")
