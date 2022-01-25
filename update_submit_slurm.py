@@ -110,6 +110,8 @@ try:
         test_queue = utils.test_queue_frontera
     elif "stampede2" in hostname:
         test_queue = utils.test_queue_stampede2
+    elif "anvil" in hostname:
+        test_queue = utils.test_queue_anvil
     else:
         raise ValueError("Machine not recognized")
     test_queue(answer_partition)

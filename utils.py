@@ -74,6 +74,17 @@ def test_queue_frontera(value):
         raise ValueError("This is not an acceptable queue")
 
 
+def test_queue_anvil(value):
+    if value not in [
+        "debug",
+        "normal",
+        "wide",
+        "shared",
+        "highmem",
+    ]:
+        raise ValueError("This is not an acceptable queue")
+
+
 def test_walltime(value):
     # First we'll check that is has an hours, minutes, seconds fields
     time_segments = value.split(":")
