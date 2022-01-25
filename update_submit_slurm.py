@@ -125,6 +125,8 @@ else:
         ncpus = "56"
     elif "stampede2" in hostname:
         ncpus = "68"
+    elif "anvil" in hostname:
+        ncpus = "128"
 
 # Then check whether the use picked an appropriate number of mpi tasks
 # per node. It must evenly divide the number of cpus on the node
