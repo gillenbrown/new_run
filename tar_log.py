@@ -7,6 +7,7 @@ The script must be run from SCRATCH, and the log directory must be here. This wo
 for production runs only.
 """
 import sys
+import os
 from pathlib import Path
 import subprocess
 
@@ -14,7 +15,7 @@ import subprocess
 log_dir = Path(sys.argv[1]).resolve()
 
 # validate that we're on scratch
-if not str(log_dir.parent) == "/scratch/06912/tg862118":
+if not str(log_dir.parent) == os.getenv("SCRATCH"):
     print(log_dir.parent)
     raise ValueError("Not on scratch")
 # validate that this is a production run

@@ -8,12 +8,14 @@ the same path on Ranch, so this directory needs to exist.
 """
 
 import sys
+import os
 from pathlib import Path
 import getpass
 import pexpect
 
 # Ask the user for their password, will be used later
 pwd = getpass.getpass(prompt="Enter Ranch password: ")
+
 
 def get_yn_input(prompt):
     answer = input(prompt + " (y/n) ")
@@ -22,8 +24,9 @@ def get_yn_input(prompt):
 
     return answer == "y"
 
+
 # set the maximum size of the tar file before compression is done.
-max_size = 300E9  # 300 GB, in bytes
+max_size = 300e9  # 300 GB, in bytes
 
 # Directory where the output files will be located
 this_dir = Path("./").absolute()
@@ -31,7 +34,7 @@ this_dir = Path("./").absolute()
 # as the directory here (other than the home directory, obviously). Identifying the
 # home directory on stampede scratch is a bit tricky, since Path.home() goes to the
 # $HOME partition, not scratch
-stampede_username = "tg862118/"
+stampede_username = os.getlogin() + os.sep
 non_home_path = str(this_dir).partition(stampede_username)[-1]
 
 # first get a list of all the .art files, so I can make sure all files from a
@@ -74,6 +77,7 @@ def file_to_scale(file_name):
     file_name = file_name.replace("." + suffix, "")
     return file_name.split("_")[-1]
 
+
 named_groups = dict()
 for group in file_groups:
     # get the range of scale factors included in this tar file.
@@ -111,7 +115,9 @@ for name in named_groups:
         command += file
         command += " "
     # Use Stampede2 variables to point to Ranch
-    command += '| ssh ${ARCHIVER} "cat > /stornext/ranch_01/ranch/projects/TG-AST200017/'
+    command += (
+        '| ssh ${ARCHIVER} "cat > /stornext/ranch_01/ranch/projects/TG-AST200017/'
+    )
     command += f'{non_home_path}/{name}"'
     # spawn the child process, and use the encoding argument to allow me to send the
     # log to stdout. Set no timeout since the copying takes a while.
